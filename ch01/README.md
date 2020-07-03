@@ -10,8 +10,7 @@ template<typename T>
 void function_for_x(T param);
 function_for_x(3);
 ```
-
-因此讨论`auto`之前，先讨论模板的型别推导。
+在上面的模板函数中，编译器推导实参`3`的规则基本同样适用于`auto`赋值语句中的推导, 因此讨论`auto`之前，先讨论模板的型别推导。
 
 ## 模板中的型别推导 
 
@@ -89,6 +88,7 @@ void case2(){
     f(rx);    // int&
     f(cx);    // const int&
     f(crx);   // const int&
+    f(233);   // int&&
 ```
 
 ### 情况三：`ParamType`既非指针也非引用
@@ -124,9 +124,7 @@ void case3(){
 如果实参是数组，且`ParamType`包含引用，那么就可以看到如下场景：
 ```c++
 template<typename T>
-void f(T& param){
-    TypeDisplayer<decltype(param)> paramType;
-}
+void f(T& param)；
 void caseArray(){
     int arr[] = {1,2,3};
     f1(arr);       // int (&)[3]
@@ -167,7 +165,7 @@ auto aarr = arr;    // aarr int*
 auto& ararr = arr;  // ararr is int (&)[3]
 ```
 
-`auto`与模板型别推导唯一不同之处在于对`std::initializer_list<T>`的处理，
+`auto`与模板型别推导唯一不同之处在于对大括号`{}`的处理。`auto`会把大括号推导为`std::initializer_list<T>`，而`T`则不会。
 ```c++
 auto xs = {23, 12};  // xs is std::initilizer_list<int>
 
@@ -192,4 +190,5 @@ TypeDisplayer<decltype(x)> x_type;   // 编译器报错信息会显示推导的�
 例子：unordered_map。
 
 
-### 特殊情况：*隐形*代理类
+### 特殊情况：隐形代理类
+[TODO] 此种情况下`auto`会推导错误，如`std::vector<bool>`。
