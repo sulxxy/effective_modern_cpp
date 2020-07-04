@@ -174,7 +174,7 @@ void f(T param);
 f({23, 12}); // error
 
 template<typename T>
-void f(std::initializer<T> param);
+void f(std::initializer_list<T> param);
 f({23, 12}); // correct, T is int
 ```
 
@@ -192,3 +192,11 @@ TypeDisplayer<decltype(x)> x_type;   // 编译器报错信息会显示推导的�
 
 ### 特殊情况：隐形代理类
 [TODO] 此种情况下`auto`会推导错误，如`std::vector<bool>`。
+
+## 待解决的问题
+1. [ ] unordered_map内存空间分配
+2. [ ] 隐形代理类
+3. [ ] const的用法
+
+## 参考书目
+* Scott Meyers. 2014. Effective Modern C++: 42 Specific Ways to Improve Your Use of C++11 and C++14 (1st. ed.). O’Reilly Media, Inc.
