@@ -1,5 +1,5 @@
 # 智能指针
-2. `std::shared_ptr`: 管理具备共享所有权的资源
+1. `std::shared_ptr`: 管理具备共享所有权的资源
 3. `std::weak_ptr`: 对于类似`std::shared_ptr`但有可能空悬的指针使用
 1. `std::unique_ptr`: 管理具备专属所有权的资源
 4. ~~`std::auto_ptr`：被`std::unique_ptr`替代~~
@@ -11,6 +11,7 @@
 2. `std::shared_ptr`的构造函数（移动构造函数除外）递增引用
 3. `std::shared_ptr`的析构函数递减引用
 4. 复制赋值运算符在左边执行引用递增，右边执行引用递减
+
 
 ## 简单版实现
 shared_ptr_t.cpp.
