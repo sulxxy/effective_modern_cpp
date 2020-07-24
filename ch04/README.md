@@ -17,7 +17,7 @@
 shared_ptr_t.cpp.
 
 ## 问题1：性能
-1. 尺寸：内部包含一个指向资源的裸指针，也包含一个指向该资源的引用计数的指针
+1. 尺寸：内部包含一个指向资源的裸指针，也包含一个指向该资源的引用计数的指针![shared_ptr](https://github.com/sulxxy/effective_modern_cpp/blob/master/ch04/Screenshot%20from%202020-07-24%2012-17-15.png)
 2. 引用计数的内存必须动态分配
 3. 引用计数的递增、递减必须原子操作
 ## 问题2：环形引用
