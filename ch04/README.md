@@ -1,14 +1,9 @@
 # 智能指针
-1. std::unique_ptr
-2. std::shared_ptr
-3. std::weak_ptr
+2. `std::shared_ptr`: 管理具备共享所有权的资源
+3. `std::weak_ptr`: 对于类似`std::shared_ptr`但有可能空悬的指针使用
+1. `std::unique_ptr`: 管理具备专属所有权的资源
+4. ~~`std::auto_ptr`：被`std::unique_ptr`替代~~
 
-# std::unique_ptr
-## 条款18：使用`std::unique_ptr`管理具备专属所有权的资源
-1. 自定义deleter，见例子custimize_deleter.cpp.
-1. 转化成`std::shared_ptr`
-
-## 条款22：使用Pimpl习惯用法时，将特殊成员函数的定义放到实现文件中
    
 # std::shared_ptr
 ## 条款19：使用`std::shared_ptr`管理具备共享所有权的资源
@@ -18,7 +13,8 @@
 4. 复制赋值运算符在左边执行引用递增，右边执行引用递减
 
 ## 简单版实现
-https://blog.csdn.net/peng864534630/article/details/77932574
+shared_ptr_t.cpp.
+
 ## 问题1：性能
 1. 尺寸：内部包含一个指向资源的裸指针，也包含一个指向该资源的引用计数的指针
 2. 引用计数的内存必须动态分配
@@ -26,7 +22,7 @@ https://blog.csdn.net/peng864534630/article/details/77932574
 ## 问题2：环形引用
 1. 例子:circle_ref.cpp
 2. 打破：`std::weak_ptr`
-## 自定义析构函数
+## 自定义析构器
 例子：
 ```c++
 class A{
@@ -77,16 +73,16 @@ std::vector<std::shared_ptr<A>> vec;
 class A{
 public:
     void process(){
-        //processing
+        //other code
         // put into vec
-        vec.emplace_back(this);  // 每次都会用this指针创建一个std::shared_ptr对象（包含一个新的控制块）
+        vec.emplace_back(this);  // 每次都会用this指针创建一个新的std::shared_ptr对象（包含一个新的控制块）
     }
 }
 ```
 解决方案：
 ```c++
 std::vector<std::shared_ptr<A>> vec;
-class A : public std::enable_shared_from_this<A>{ // 奇妙递归模板模式
+class A : public std::enable_shared_from_this<A>{ // 奇异递归模板模式, CRTP
 public:
     void process(){
         //processing
@@ -145,7 +141,7 @@ int main(){
    ```c++
    std::shared_ptr<A> sp1 = wp.lock(); //若wp失效，sp1为空
    //or
-   std::shared_ptr<A> sp2(wp); // 若wp失效，抛出std::bad_weak_ptr一场
+   std::shared_ptr<A> sp2(wp); // 若wp失效，抛出std::bad_weak_ptr异常
    ```
 
 ### 使用场景
@@ -154,7 +150,7 @@ int main(){
 3. 缓存
    
 ## 条款21：优先选用`std::make_unique`和`std::make_shared`，而非直接使用`new`
-1. `std::make_shared`指会分配一次内存
+1. `std::make_shared`只会分配一次内存
 2. 异常安全
    ```c++
    void process(std::shared_ptr<A> sp, int priority);
@@ -166,8 +162,19 @@ int main(){
    1. `new A`
    2. `computePriority()`
    3. `std::shared_ptr<A>()`
+   
    如果第二步出现异常，则会发生内存泄漏。
+   
+# std::unique_ptr
+## 条款18：使用`std::unique_ptr`管理具备专属所有权的资源
+1. 几乎和裸指针占用空间一致
+1. 自定义deleter，见例子custimize_deleter.cpp.
+1. 转化成`std::shared_ptr`
+
+## 条款22：使用Pimpl习惯用法时，将特殊成员函数的定义放到实现文件中
+
 
 ## Reference
 * Scott Meyers. 2014. Effective Modern C++: 42 Specific Ways to Improve Your Use of C++11 and C++14 (1st. ed.). O’Reilly Media, Inc.
 * https://blog.csdn.net/QIANGWEIYUAN/article/details/88973735
+* https://blog.csdn.net/peng864534630/article/details/77932574
