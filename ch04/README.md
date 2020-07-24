@@ -174,6 +174,14 @@ int main(){
 
 ## 条款22：使用Pimpl习惯用法时，将特殊成员函数的定义放到实现文件中
 
+## 待解决的问题
+[ ] 引用计数控制块为什么一定需要动态分配内存
+[ ] copy assignment，引用计数变化
+[ ] 条款22
+[ ] `unique_ptr`转`shared_ptr`使用场景
+[ ] `enable_from_this`使用场景
+[ ] 循环引用，析构顺序
+
 
 ## Reference
 * Scott Meyers. 2014. Effective Modern C++: 42 Specific Ways to Improve Your Use of C++11 and C++14 (1st. ed.). O’Reilly Media, Inc.
