@@ -195,8 +195,9 @@ TypeDisplayer<decltype(x)> x_type;   // 编译器报错信息会显示推导的�
 
 ## 待解决的问题
 1. [ ] unordered_map内存空间分配
-2. [ ] 隐形代理类
-3. [ ] const的用法
+2. [ ] decltype
+3. [ ] 隐形代理类
+4. [ ] const的用法
 
 ## 参考书目
 * Scott Meyers. 2014. Effective Modern C++: 42 Specific Ways to Improve Your Use of C++11 and C++14 (1st. ed.). O’Reilly Media, Inc.
