@@ -12,7 +12,7 @@ function_for_x(3);
 ```
 在上面的模板函数中，编译器推导实参`3`的规则基本同样适用于`auto`赋值语句中的推导, 因此讨论`auto`之前，先讨论模板的型别推导。
 
-## 模板中的型别推导 
+## 条款1：理解模板型别推导 
 
 ```c++
 template<typename T>
@@ -141,7 +141,7 @@ int arr[] = {1,2,3};
 std::size_t n_arr = arraySize(arr);
 ```
 
-## auto
+## 条款2：理解auto型别推导
 ### 规则
 ```c++
 auto x = 3;
