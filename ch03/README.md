@@ -69,16 +69,49 @@ int z = 0;
        A(int i, double d);
        A(std::initializer_list<std::string> il);
    };
-   A a1(10, true);
+   A a1(10, true); //comment: todo
    A a2{10, true};
    A a3(10, 5.0);
    A a4{10, 5.0};
+4. 不带参数的默认构造函数
+example:todo;
 
 # 条款8：优先选用`nullptr`，而非`0`或`NULL`
+```c++
+void f(int);
+void f(bool);
+void f(void*);
+f(0);
+f(NULL);
+```
+
 # 条款9：优先选用别名声明，而非`typedef`
 # 条款10：优先选用限定作用域的枚举类型，而非不限定作用域的枚举类型
+
+1. 减少命名污染
+```c++
+enum Color {red, green, blue};
+auto red = false; // wrong
+```
+
+```c++
+enum class Color {red, green, blue};
+auto red = false; // correct
+auto c = Color::red;
+```
+2. 强类型
+
 # 条款11：优先选用删除函数，而非`private`未定义函数
+任何函数都可以删除，包括非成员函数和模板实现；
+
 # 条款12：为意在改写的函数添加override声明
+override条件：
+
+例子：
+
+好处：
+修改基类、能方便看出改动的代价；
+
 # 条款13：优先选用`const_iterator`，而非`iterator`
 # 条款14：只要函数不发射异常，就为其添加`noexcept`声明
 # 条款15：只要有可能使用`constexpr`，就使用它
