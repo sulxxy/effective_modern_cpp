@@ -89,24 +89,38 @@ f(NULL);
 # 条款10：优先选用限定作用域的枚举类型，而非不限定作用域的枚举类型
 
 1. 减少命名污染
-```c++
-enum Color {red, green, blue};
-auto red = false; // wrong
-```
+   ```c++
+   enum Color {red, green, blue};
+   auto red = false; // wrong
+   ```
 
-```c++
-enum class Color {red, green, blue};
-auto red = false; // correct
-auto c = Color::red;
-```
+   ```c++
+   enum class Color {red, green, blue};
+   auto red = false; // correct
+   auto c = Color::red;
+   ```
 2. 强类型
+3. 可以用于前置声明
+   
+   C++98不可以，因为底层型别是不确定的，因而编译器无法确定尺寸。在C++11中，限定作用域的枚举型别的底层型别是已知的；而对于不限范围的枚举型别，可以指定型别。
 
 # 条款11：优先选用删除函数，而非`private`未定义函数
-任何函数都可以删除，包括非成员函数和模板实现；
+C++98: 声明为`private`且不给出定义；
+C++11: 使用delete。
+
+好处：
+1. 删除函数无法通过任何方法使用，但private函数可在成员内被使用，这样只有在链接阶段才会被诊断出来；【TODO】
+2. 任何函数都可以删除，包括非成员函数和模板实现；
+3. 
 
 # 条款12：为意在改写的函数添加override声明
 override条件：
-
+1. 基类中的函数必须是虚函数
+2. 基类和派生类中的函数名字必须完全一致（析构函数除外）
+3. 函数形参型别必须完全一致
+4. 常量性完全相同
+5. 返回值和异常规格兼容
+6. 引用修饰词相同
 例子：
 
 好处：
