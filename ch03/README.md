@@ -4,7 +4,23 @@ int x(0);
 int y{0};
 int z = 0;
 ```
-大括号可以统一初始化；不能窄化；
+大括号可以统一初始化；
+```c++
+class A{
+private:
+    int x{0};
+    int y = 0;
+    int z(0);  // not allowed
+}
+```
+
+```c++
+std::atomic<int> ai1{0};   // correct
+std::atomic<int> ai2(0);   // correct
+std::atomic<int> ai3 = 0; // wrong
+```
+
+大括号初始化不能窄化，[例子].(./init_list0.cpp)。
 
 1. 构造函数中没有`std::initializer_list`形参时，大小括号初始化行为一致；
    ```c++
@@ -18,7 +34,7 @@ int z = 0;
    A a3(10, 5.0);    // 调用第二个构造函数
    A a4{10, 5.0};    // 同上
    ```
-2. 如果构造函数形参中包含`std::initializer_list`，那么编译器会尽最大可能把调用带`std::initializer_list`的版本
+2. 如果构造函数形参中包含`std::initializer_list`，那么编译器会尽最大可能把调用带`std::initializer_list`的版本，[例子](./init_list.cpp):
    ```c++
    class A{
        public:
@@ -26,10 +42,10 @@ int z = 0;
        A(int i, double d);
        A(std::initializer_list<double> il);
    };
-   A a1(10, true);
-   A a2{10, true};
-   A a3(10, 5.0);
-   A a4{10, 5.0};
+   A a1(10, true);    // 1
+   A a2{10, true};    // 3
+   A a3(10, 5.0);     // 2
+   A a4{10, 5.0};     // 3
    ```
 
    ```c++
@@ -37,16 +53,16 @@ int z = 0;
        public:
        A(int i, bool b);
        A(int i, double d);
-       A(A a);
-       A(A&& a);
        A(std::initializer_list<double> il);
+       A(const A& a);
+       A(A&& a);
        operator float() const;
    };
    A tmp;
-   A a1(tmp);
-   A a2{tmp};
-   A a3(std::move(tmp));
-   A a4{std::move(tmp)};
+   A a1(tmp);    //  4
+   A a2{tmp};    //  3
+   A a3(std::move(tmp));    // 5
+   A a4{std::move(tmp)};    // 3
    ```
 
    ```c++
@@ -56,10 +72,10 @@ int z = 0;
        A(int i, double d);
        A(std::initializer_list<bool> il);
    };
-   A a1(10, true);
-   A a2{10, true};
-   A a3(10, 5.0);
-   A a4{10, 5.0};
+   A a1(10, true);  // 1
+   A a2{10, true};  // 3
+   A a3(10, 5.0);   // 2
+   A a4{10, 5.0};   // 3 with error
    ```
 3. 只有在找不到任何办法把大括号中的初始化物的实参转化成`std::initializer_list`模板中的型别时，编译器才会退而检查其他重载版本；
    ```c++
@@ -69,12 +85,17 @@ int z = 0;
        A(int i, double d);
        A(std::initializer_list<std::string> il);
    };
-   A a1(10, true); //comment: todo
-   A a2{10, true};
-   A a3(10, 5.0);
-   A a4{10, 5.0};
+   A a1(10, true);    //  1
+   A a2{10, true};    //  1
+   A a3(10, 5.0);     //  2
+   A a4{10, 5.0};     //  2
 4. 不带参数的默认构造函数
-example:todo;
+```c++
+A a(2);    // init an object of A with parameter 2
+A a();     // function a with return type A
+A a({});     // call the constructor with initializer_list
+A a{};   //  call default constructor withno parameters
+```
 
 # 条款8：优先选用`nullptr`，而非`0`或`NULL`
 ```c++
@@ -122,7 +143,7 @@ private:
 
 ```c++
 class Wine {...};
-template<T>
+template<>
 class MyAllocList<Wine>{
 private:
     enum class WineType{
@@ -148,7 +169,7 @@ private:
 2. 强类型
 3. 可以用于前置声明
    
-   C++98不可以，因为底层型别是不确定的，因而编译器无法确定尺寸。在C++11中，限定作用域的枚举型别的底层型别是已知的；而对于不限范围的枚举型别，可以指定型别。
+   C++98不可以，因为底层型别是不确定的，因而编译器无法确定尺寸。在C++11中，限定作用域的枚举型别的底层型别是已知的；而对于不限范围的枚举型别，可以指定型别，[例子](./enum_test.cpp)。
 
 # 条款11：优先选用删除函数，而非`private`未定义函数
 C++98: 声明为`private`且不给出定义；
