@@ -80,12 +80,58 @@ example:todo;
 ```c++
 void f(int);
 void f(bool);
-void f(void*);
+void f(ptr*);
 f(0);
-f(NULL);
+f(NULL); // compilation error
+f(nullptr); // no problem
 ```
+[例子](./nullptr.cpp)。
 
 # 条款9：优先选用别名声明，而非`typedef`
+别名声明：
+```c++
+using IterT = std::vector<int>::iterator;
+```
+`typedef`:
+```c++
+typedef std::vector<int>::iterator IterT;
+```
+别名声明的一个优势时可以模板化，
+```c++
+template<typename T>
+using MyAllocList = std::list<T, MyAlloc<T>>;
+MyAllocList<A> lw;
+```
+
+但是使用`typedef`会非常麻烦：
+```c++
+template<typename T>
+struct MyAllocList{
+    typedef std::list<T, MyAlloc<T>> type;
+};
+MyAllocList<A>::type lw;
+```
+
+```c++
+template<typename T>
+class Widget{
+private:
+    typename MyAllocList<T>::type list; //带依赖型别，编译器无法确定type是表示型别还是类成员，所以必须加typename
+};
+```
+
+```c++
+class Wine {...};
+template<T>
+class MyAllocList<Wine>{
+private:
+    enum class WineType{
+        White, Red, Rose
+    };
+    WineType type;  //此时type是一个成员
+};
+```
+
 # 条款10：优先选用限定作用域的枚举类型，而非不限定作用域的枚举类型
 
 1. 减少命名污染
@@ -109,9 +155,9 @@ C++98: 声明为`private`且不给出定义；
 C++11: 使用delete。
 
 好处：
-1. 删除函数无法通过任何方法使用，但private函数可在成员内被使用，这样只有在链接阶段才会被诊断出来；【TODO】
-2. 任何函数都可以删除，包括非成员函数和模板实现；
-3. 
+1. 删除函数无法通过任何方法使用，但private函数可在成员内被使用，这样只有在链接阶段才会被诊断出来，[例子](./delete_n_private.cpp)；
+2. 任何函数都可以删除，包括非成员函数和模板实现，[例子](./delete.cpp)；
+3. delete可以阻止不应该进行的模板具现，[例子](./delete2.cpp)。
 
 # 条款12：为意在改写的函数添加override声明
 override条件：
@@ -121,13 +167,27 @@ override条件：
 4. 常量性完全相同
 5. 返回值和异常规格兼容
 6. 引用修饰词相同
-例子：
 
 好处：
-修改基类、能方便看出改动的代价；
+修改基类、能方便看出改动的代价。
+
+成员函数引用修饰词使得对于左值和右值对象的处理能够区分开，[例子](./member_func_ref.cpp)。
 
 # 条款13：优先选用`const_iterator`，而非`iterator`
+任何时候只需要迭代器而其指向的内容没有必要修改，就应该使用`const_iterator`。
+但C++98中的`const_iterator`并不好用。
+例子：
+1. [C++98](./const_iterator_98.cpp)
+2. [C++11](./const_iterator_11.cpp)
+
 # 条款14：只要函数不发射异常，就为其添加`noexcept`声明
 # 条款15：只要有可能使用`constexpr`，就使用它
 # 条款16：保证`const`成员函数的线程安全性
 # 条款17：理解特种成员函数的生成机制
+
+* 默认构造函数：仅当类中不包含用户声明的构造函数时才生成；
+* 析构函数：仅当基类的析构函数为虚函数时，派生类的析构函数才是虚的；
+* 复制构造函数和复制赋值函数：按成员进行非静态数据成员的复制操作；如果该类声明了移动操作，则复制函数被定义为删除，[例子](./member_func.cpp)；
+* 移动构造函数和移动赋值运算符：都按成员进行非静态数据成员的移动操作。仅当类中不包含用户声明的复制操作、移动操作和析构函数时才生成。
+
+即使编译器能自动生成复制和移动操作，但最好还是：将函数自行声明，并且以`=default`作为定义，[例子](./member_func2.cpp)。
