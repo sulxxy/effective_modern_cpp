@@ -189,7 +189,9 @@ override条件：
 5. 返回值和异常规格兼容
 6. 引用修饰词相同
 
-好处：
+[例子](./override.cpp)。
+
+override好处：
 修改基类、能方便看出改动的代价。
 
 成员函数引用修饰词使得对于左值和右值对象的处理能够区分开，[例子](./member_func_ref.cpp)。
@@ -204,6 +206,43 @@ override条件：
 # 条款14：只要函数不发射异常，就为其添加`noexcept`声明
 # 条款15：只要有可能使用`constexpr`，就使用它
 # 条款16：保证`const`成员函数的线程安全性
+`const`成员函数意味着其是一个只读操作。多线程场景下，即使没有同步，读操作也是安全的。但如果类中包含`mutable`成员时，会有例外。
+
+```c++
+class A{
+public:
+    void foo() const{
+        if(!flag){
+            var = compute();   // data race in multithread env
+            flag = true;
+        }
+        retun var;
+    }
+private:
+    mutable int var;
+    int compute() const;
+}
+```
+
+解决方案是加锁：
+```c++
+class A{
+public:
+    void foo() const{
+        std::lock_guard<std::mutex> g(m);
+        if(!flag){
+            var = compute();   // data race in multithread env
+            flag = true;
+        }
+        retun var;
+    }
+private:
+    mutable int var;
+    mutable std::mutex m;
+    int compute() const;
+}
+```
+
 # 条款17：理解特种成员函数的生成机制
 
 * 默认构造函数：仅当类中不包含用户声明的构造函数时才生成；
