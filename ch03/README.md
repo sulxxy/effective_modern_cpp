@@ -20,7 +20,7 @@ std::atomic<int> ai2(0);   // correct
 std::atomic<int> ai3 = 0; // wrong
 ```
 
-大括号初始化不能窄化，[例子].(./init_list0.cpp)。
+大括号初始化不能窄化，[例子](./init_list0.cpp)。
 
 1. 构造函数中没有`std::initializer_list`形参时，大小括号初始化行为一致；
    ```c++
