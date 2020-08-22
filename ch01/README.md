@@ -193,6 +193,10 @@ TypeDisplayer<decltype(x)> x_type;   // 编译器报错信息会显示推导的�
 ### 特殊情况：隐形代理类
 [TODO] 此种情况下`auto`会推导错误，如`std::vector<bool>`。
 
+## 条款3：理解`decltype`
+
+## 条款4：掌握查看型别推导结果的方法
+
 ## 待解决的问题
 1. [ ] unordered_map内存空间分配
 2. [ ] decltype
