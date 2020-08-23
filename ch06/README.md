@@ -51,10 +51,30 @@ auto f = [] { return 42; };
    ```
    如果采用引用方式捕获一个变量，就必须确保被引用的对象在lambda**执行**的时候时存在的。lambda捕获的都是局部变量，而这些变量在函数结束后就不存在了。如果lambda可能在函数结束后才执行，捕获的引用指向的局部变量已经消失。
 3. 隐式捕获
+   在捕获列表中使用`=`或`&`，编译器则可以推断捕获列表；
+   ```c++
+   auto f = [=] { return 42; };  //所有局部变量皆是值捕获
+   auto f = [&] { return 42; };  //所有局部变量皆是引用捕获
+   auto f = [&, val] { return 42; };  //除了val，所有局部变量皆是引用捕获
+   auto f = [=, &val] { return 42; };  //除了val，所有局部变量皆是值捕获
+   ```
 4. 可变lambda
+   默认情况下，对于一个值被拷贝的变量，lambda不会改变其值。如果希望改变一个被捕获的变量的值，则需要在参数列表后加上`mutable`。
+   ```c++
+   auto f1 = [val] () mutable { return ++val; };
+   ```
+   而对于引用捕获，则不需要`mutable`，主要取决于此引用指向的是一个`const`类型还是非`const`类型。
+   [例子](./lambda_mutable.cpp)。
 5. 指定lambda的返回类型
+   默认情况下，如果一个lambda体包含`return`之外的任何语句，则编译器假定此lambda返回`void`。
+   ```c++
+   auto f = [](int v) {return i < 0? -i : i; }; // correct, return int
+   auto f2 = [](int v) { if (v < 0) return -i; else return i; }; // wrong, 编译器推断返回void，但实际返回了int
+   auto f2 = [](int v) -> int { if (v < 0) return -i; else return i; }; // correct, return int
+   ```
 
 ### 参数绑定
+
 
 ## 条款31：避免使用默认捕获模式
 ## 条款32：使用初始化捕获将对象移入闭包
