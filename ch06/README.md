@@ -31,6 +31,7 @@ auto f = [] { return 42; };
 
 ### lambda捕获与返回
 1. 值捕获
+   
    与传值参数类似，采用值捕获的前提是变量可以拷贝；与参数不同，被捕获的变量是在lambda**创建时**拷贝，而不是调用时拷贝：
    ```c++
    void func1(){
@@ -51,6 +52,7 @@ auto f = [] { return 42; };
    ```
    如果采用引用方式捕获一个变量，就必须确保被引用的对象在lambda**执行**的时候时存在的。lambda捕获的都是局部变量，而这些变量在函数结束后就不存在了。如果lambda可能在函数结束后才执行，捕获的引用指向的局部变量已经消失。
 3. 隐式捕获
+   
    在捕获列表中使用`=`或`&`，编译器则可以推断捕获列表；
    ```c++
    auto f = [=] { return 42; };  //所有局部变量皆是值捕获
@@ -59,6 +61,7 @@ auto f = [] { return 42; };
    auto f = [=, &val] { return 42; };  //除了val，所有局部变量皆是值捕获
    ```
 4. 可变lambda
+   
    默认情况下，对于一个值被拷贝的变量，lambda不会改变其值。如果希望改变一个被捕获的变量的值，则需要在参数列表后加上`mutable`。
    ```c++
    auto f1 = [val] () mutable { return ++val; };
@@ -66,6 +69,7 @@ auto f = [] { return 42; };
    而对于引用捕获，则不需要`mutable`，主要取决于此引用指向的是一个`const`类型还是非`const`类型。
    [例子](./lambda_mutable.cpp)。
 5. 指定lambda的返回类型
+   
    默认情况下，如果一个lambda体包含`return`之外的任何语句，则编译器假定此lambda返回`void`。
    ```c++
    auto f = [](int v) {return i < 0? -i : i; }; // correct, return int
