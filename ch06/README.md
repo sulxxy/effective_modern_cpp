@@ -78,9 +78,82 @@ auto f = [] { return 42; };
    ```
 
 ### 参数绑定
-
+[example](./lambda_findif.cpp)。
 
 ## 条款31：避免使用默认捕获模式
+默认捕获包括默认值捕获`[=]`和引用捕获`[&]`，
+1. 避免空悬引用
+   ```c++
+   using FilterContainer = std::vector<std::function<bool(int)>>;
+   FilterContainer filters;
+   void addDivisorFilter(int param){
+      auto divisor = computeDisivor(param);
+      filters.emplace_back(
+         [&](int value) {return value % divisor == 0; // reference to divisor might be empty
+         }
+      );
+   }
+   ```
+
+   一种更好的实践是，显示写出捕获的变量：
+   ```c++
+   filters.emplace_back(
+      [&divisor](int value) {return value % divisor == 0; 
+      }
+   );
+   ```
+
+   值捕获也可能导致空悬引用。
+   ```c++
+   void Widget::addFilter() const{
+      filters.emplace_back(
+         [=](int value) { return value % divisor == 0; }
+      );
+   }
+   ```
+   捕获仅针对于在创建lambda表达式的作用域内可见的**非静态局部**变量（包括形参）。
+   上式等价于：
+   ```c++
+   void Widget::addFilter() const{
+      auto currentObjectPtr = this;
+      filters.emplace_back(
+         [currentObjectPtr](int value) { return value % currentObjectPtr->divisor == 0; }
+      );
+   }
+   ```
+
+   解决方案：
+   ```c++
+   void Widget::addFilter() const{
+      auto divisorCopy = divisor;
+      filters.emplace_back(
+         [divisorCopy](int value) { return value % divisorCopy == 0; }
+      );
+   }
+   ```
+
+2. 容易让用户产生误会
+   `static`变量可以在lambda内部使用，但不能被捕获，[例子](./lambda_static.cpp)。
+
 ## 条款32：使用初始化捕获将对象移入闭包
+有时希望将一个只移对象（例如`std::unique_ptr`）放入捕获列表中，C++11不直接支持。C++14中提出了全新的捕获机制，叫初始化捕获（init capture）。使用初始化捕获可以指定：
+1. 由lambda生成的闭包类中的成员变量的名字；
+2. 一个表达式，用以初始化该成员变量。
+
+例子：
+```c++ class:"lineNo"
+class Widget {
+public:
+   bool isValidated() const;
+   bool isProcessed() const;
+   bool isArchived() const;
+};
+
+auto pw = std::make_unique<Widget>();
+auto func = [pw = std::move(pw)]{     //初始化捕获
+   return pw->isValidated() && pw->isArchived();
+};
+```
+
 ## 条款33：对`auto&&`型别的形参使用`decltype`，以`std::forward`之
 ## 条款34：优先选用lambda表达式，而非`std::bind`
