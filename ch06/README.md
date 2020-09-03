@@ -1,3 +1,6 @@
+# return value optimization
+[example](./test_new.cpp)
+
 # lambda表达式
 ## 基本介绍
 ```
@@ -141,7 +144,7 @@ auto f = [] { return 42; };
 2. 一个表达式，用以初始化该成员变量。
 
 例子：
-```c++ class:"lineNo"
+```c++
 class Widget {
 public:
    bool isValidated() const;
@@ -154,6 +157,74 @@ auto func = [pw = std::move(pw)]{     //初始化捕获
    return pw->isValidated() && pw->isArchived();
 };
 ```
+上例初始化捕获列表中，等号左右两边的`pw`拥有不同的作用域，左边是闭包`func`类成员变量的名字，作用域则是闭包的作用域；右边是初始化表达式，与lambda表达式定义之处的作用域相同。
+
+如果需要用C++11实现，则是：
+1. 把需要捕获的对象移动到`std::bind`产生的函数对象中
+2. 给到lambda表达式一个指涉到欲捕获的对象的引用
+```c++
+std::vector<double> data;
+// ...
+auto func = [data = std::move(data)] { /*processing data*/ }; // C++14
+```
+在C++11中，则需要：
+```c++
+std::vector<double> data;
+// ...
+auto func = std::bind([](const std::vector<double>& data){/* processing data */}, std::move(data));
+```
 
 ## 条款33：对`auto&&`型别的形参使用`decltype`，以`std::forward`之
+C++14中，lambda表达式的形参可以使用`auto`，例如
+```c++
+auto f = [val](auto x) {return foo(x); };
+```
+
+lambda表达式对`x`的唯一动作就是将其转发给`foo`。如果`foo`函数区分左值和右值，那么该lambda表达式会有问题，因为lambda表达式总是传递左值给`foo`，[例子](./lambda_lrv.cpp)。
+解决方案是使用完美转发：
+```c++
+auto f = [val](auto&& x) {return foo(std::forward<decltype(x)>(x)); };
+```
+
 ## 条款34：优先选用lambda表达式，而非`std::bind`
+1. 更高的可读性
+   ```c++
+   using Time = std::chrono::steday_clock::time_point;
+   enum class Sound {Beep, Siren, Whistle};
+   using Duration = std::chrono::steady_clock::duration;
+   void setAlarm(Time t, Sound s, Duration d);
+   ```
+
+   需要在程序某处设置在一个小时后发出警报并持续30s。警报的具体声音未确定。因此可以编写lambda表达式，修改`setAlarm`的接口，新接口只需指定声音即可。
+
+   ```c++
+   auto setSoundL = [] (Sound s) {
+      using namespace std::chrono;
+      using namespace std::literals;
+      setAlarm(steady_clock::now()+1h, s,30s);
+   }
+   ```
+
+   如果使用`std::bind`，代码形式如下：
+
+   ```c++
+   using namespace std::chrono;
+   using namespace std::literals;
+   using namespace std::placeholders;
+
+   auto setSoundB = std::bind(setAlarm, steady_clock::now()+1h, _1, 30s);
+   ```
+
+   但是这段代码是错误的，因为警报被设定的启动时间是创建`setSoundB`后的一小时，而不是`setAlarm`调用之后的一小时。解决这个问题需要延迟评估表达式的值，则有：
+   
+   ```c++
+   // https://stackoverflow.com/questions/42207520/why-nested-bind-can-defer-evaluation-of-the-expression
+   auto setSoundB = std::bind(setAlarm, 
+                              std::bind(std::plus<steady_clock::time_point>(), 
+                                       std::bind(steady_clock::now),
+                                       hours(1)),
+                              _1,
+                              seconds(30));
+   ```
+
+   如果`setAlarm`有重载版本，那么`setSoundB`会报错，因为编译器不知道该传哪个版本的参数。
