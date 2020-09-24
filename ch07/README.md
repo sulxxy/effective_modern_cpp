@@ -82,9 +82,32 @@ else {
 3. 保证get或者wait一定能执行到，或者接受其永不执行；
 4. 使用wait_for或者wait_until时将任务被延迟的可能性纳入考量。
 
-
 ## 条款37：使`std::thread`型别对象在所有路径皆不可联接
-如果可联结的线程对象的析构函数被调用，则程序的执行就终止了，[例子](./destructor.cpp)
+如果可联结的线程对象的析构函数被调用，则程序的执行就终止了，[例子](./destructor.cpp)。
+```c++
+bool Foo::work(){
+    std::thread t(f);
+    if(conditionSatisfied()){
+        t.join();
+        return true;
+    }
+    return false;
+}
+Foo foo;
+foo.work();
+test();
+```
+C++11标准：
+>30.3.1.3 thread destructor [thread.thread.destr] ~thread();
+>
+>If `joinable()`, calls `std::terminate()`. Otherwise, has no effects.
+>[ Note: Either implicitly detaching or joining a joinable() thread in its destructor could result in difficult to debug correctness (for detach) or performance (for join) bugs encountered only when an exception is raised. Thus the pro grammer must ensure that the destructor is never executed while the thread is still joinable. — end note ]
+
+为什么要这样设计呢？考虑下除了这样设计还有什么方案：
+1. 隐式`join()`: 这种情况下，std::thread的析构函数会等底层异步执行的线程完成。这会导致潜在性能异常。上例中，如果conditionSatisfied已经返回false了， 依然把f执行完，这违反直觉。
+2. 隐式`detach()`: 隐式detach之后，假设f通过引用捕获捕获了一个局部变量，然后由于conditionSatisfied()返回fasle, work()直接返回，其局部变量会被销毁。但由于调用了detach，f依然以线程的方式在运行。之后某个时刻，test()被调用，test()可能会使用一部分或者全部work()栈占用过的内存。这时候，被detach的线程也在用这个栈。那么从test()的视角看，就是自己的栈被无缘无故篡改。
+3. 直接cancel，不执行：posix不支持。
+更具体的可以参考[这里](https://akrzemi1.wordpress.com/2012/11/14/not-using-stdthread/)。
 ## 条款38：对变化多端的线程句柄析构函数行为保持关注
 ## 条款39：考虑针对一次性事件通信使用以`void`为模板型别实参的期望
 ## 条款40：对并发使用`std::atomic`，对特种内存使用`volatile`
