@@ -85,7 +85,7 @@ else {
 ## 条款37：使`std::thread`型别对象在所有路径皆不可联接
 如果可联结的线程对象的析构函数被调用，则程序的执行就终止了，[例子](./destructor.cpp)。
 ```c++
-bool Foo::work(){
+bool work(){
     std::thread t(f);
     if(conditionSatisfied()){
         t.join();
@@ -93,8 +93,7 @@ bool Foo::work(){
     }
     return false;
 }
-Foo foo;
-foo.work();
+work();
 test();
 ```
 C++11标准：
@@ -109,5 +108,11 @@ C++11标准：
 3. 直接cancel，不执行：posix不支持。
 更具体的可以参考[这里](https://akrzemi1.wordpress.com/2012/11/14/not-using-stdthread/)。
 ## 条款38：对变化多端的线程句柄析构函数行为保持关注
-## 条款39：考虑针对一次性事件通信使用以`void`为模板型别实参的期望
-## 条款40：对并发使用`std::atomic`，对特种内存使用`volatile`
+“变化多端的线程句柄”指的是std::async，
+```c++
+std::future<int> fut = std::async(std::launch::async | std::launch::deferred, f);
+```
+`fut`的析构遵循以下规则：
+1. 指涉到经由std::aysnc启动的未推迟任务的共享状态的最后一个期值会保持阻塞，直至该任务结束；
+2. 其他所有期值对象的析构函数只仅仅将期值对象析构。
+[例子](./fut_destructor.cpp)
